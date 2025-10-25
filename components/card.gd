@@ -60,6 +60,8 @@ func _gui_input(event: InputEvent) -> void:
 			else:
 				if dragging:
 					dragging = false
+					# 检查是否在垃圾桶区域内
+					check_trash_area()
 					# 停止旋转动画并归零（卡片和阴影同步）
 					if tween_rot: 
 						tween_rot.kill()
@@ -87,3 +89,36 @@ func drag_card_motion(motion_event: InputEventMouseMotion) -> void:
 		tween_rot.kill()
 	tween_rot = create_tween()
 	tween_rot.tween_property(card, "rotation_degrees", target_rotation, 0.08)
+
+# 检查卡片是否在垃圾桶区域内
+func check_trash_area() -> void:
+	# 查找垃圾桶节点
+	var trash_nodes = get_tree().get_nodes_in_group("card_trash")
+	if trash_nodes.is_empty():
+		# 如果没有找到组，尝试通过类型查找
+		trash_nodes = []
+		var all_nodes = get_tree().get_nodes_in_group("card_trash")
+		if all_nodes.is_empty():
+			# 遍历场景查找垃圾桶
+			var root = get_tree().current_scene
+			trash_nodes = find_trash_nodes(root)
+	
+	for trash in trash_nodes:
+		if trash.has_method("is_card_in_trash_area") and trash.is_card_in_trash_area(self):
+			# 卡片在垃圾桶区域内，销毁卡片
+			trash.destroy_card(self)
+			return
+
+# 递归查找垃圾桶节点
+func find_trash_nodes(node: Node) -> Array:
+	var trash_nodes = []
+	
+	# 检查当前节点是否是垃圾桶
+	if node.has_method("is_card_in_trash_area"):
+		trash_nodes.append(node)
+	
+	# 递归检查子节点
+	for child in node.get_children():
+		trash_nodes.append_array(find_trash_nodes(child))
+	
+	return trash_nodes

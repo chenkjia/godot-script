@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://ccdbwlql03nqu"]
+[gd_scene load_steps=4 format=3 uid="uid://ccdbwlql03nqu"]
 
 [ext_resource type="Script" uid="uid://c3yijigf5a4a2" path="res://components/card.gd" id="1_21rx5"]
 [ext_resource type="Texture2D" uid="uid://e6bcc7omlliv" path="res://assets/card_bg.png" id="2_hael8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_card"]
+size = Vector2(300, 440)
 
 [node name="Card" type="Control"]
 layout_mode = 3
@@ -26,6 +29,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 pivot_offset = Vector2(150, 220)
 texture = ExtResource("2_hael8")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_card")
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c2u6yugpqkb8j"]
+[gd_scene load_steps=3 format=3 uid="uid://c2u6yugpqkb8j"]
 
 [ext_resource type="PackedScene" uid="uid://daahyvmi548l3" path="res://components/CardManager.tscn" id="1_glv2v"]
+[ext_resource type="PackedScene" uid="uid://bmafjn5ssun1d" path="res://components/CardTrash.tscn" id="2_uu6xs"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -13,8 +14,5 @@ grow_vertical = 2
 [node name="CardManager" parent="." instance=ExtResource("1_glv2v")]
 layout_mode = 1
 
-[node name="CardTrash" type="Control" parent="."]
-modulate = Color(0.59402686, 0.2197401, 0.2704991, 1)
-anchors_preset = 0
-offset_right = 300.0
-offset_bottom = 440.0
+[node name="CardTrash" parent="." instance=ExtResource("2_uu6xs")]
+layout_mode = 0

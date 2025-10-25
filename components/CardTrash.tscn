@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://bmafjn5ssun1d"]
+
+[ext_resource type="Script" uid="uid://d1v4e2yxoe38y" path="res://components/card_trash.gd" id="1_sl1gn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_glv2v"]
+size = Vector2(300, 440)
+
+[node name="CardTrash" type="Control" groups=["card_trash"]]
+modulate = Color(0.59402686, 0.2197401, 0.2704991, 1)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 200.0
+offset_top = 300.0
+offset_right = 200.0
+offset_bottom = 300.0
+script = ExtResource("1_sl1gn")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_glv2v")
+debug_color = Color(0.76172197, 0.31255952, 0.81962895, 0.41960785)

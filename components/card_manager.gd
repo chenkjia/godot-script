@@ -14,6 +14,9 @@ var cards: Array[Control] = []
 @export var card_lift: float = 30.0  # 卡片向上抬起的距离
 
 func _ready() -> void:
+	# 将卡片管理器添加到组中，方便垃圾桶找到
+	add_to_group("card_manager")
+	
 	# 连接窗口大小改变信号
 	resized.connect(_on_resized)
 	# 加载九张卡片到页面底部
@@ -79,6 +82,13 @@ func clear_cards() -> void:
 			card.queue_free()
 	cards.clear()
 
-# 当窗口大小改变时重新布局
+# 窗口大小改变时重新布局
 func _on_resized() -> void:
 	arrange_cards_in_fan()
+
+# 移除卡片并重新布局
+func remove_card(card: Node) -> void:
+	if card in cards:
+		cards.erase(card)
+		# 重新布局剩余卡片
+		arrange_cards_in_fan()
