@@ -15,6 +15,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 300.0
 offset_bottom = 440.0
+pivot_offset = Vector2(150, 220)
 script = ExtResource("1_21rx5")
 
 [node name="Shadow" type="TextureRect" parent="."]
@@ -40,6 +41,7 @@ material = SubResource("ShaderMaterial_3ujke")
 layout_mode = 0
 offset_right = 300.0
 offset_bottom = 440.0
+pivot_offset = Vector2(150, 220)
 texture = ExtResource("2_hael8")
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
