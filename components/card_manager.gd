@@ -8,11 +8,16 @@ var cards: Array[Control] = []
 @export var card_spacing: float = 20.0
 @export var bottom_margin: float = 50.0
 
+# 扇形布局参数
+@export var fan_angle: float = 60.0  # 扇形总角度（度）
+@export var fan_radius: float = 800.0  # 扇形半径
+@export var card_lift: float = 30.0  # 卡片向上抬起的距离
+
 func _ready() -> void:
 	# 连接窗口大小改变信号
 	resized.connect(_on_resized)
-	# 加载三张卡片到页面底部
-	load_cards(3)
+	# 加载九张卡片到页面底部
+	load_cards(9)
 
 # 加载指定数量的卡片
 func load_cards(count: int) -> void:
@@ -25,27 +30,47 @@ func load_cards(count: int) -> void:
 		add_child(card_instance)
 		cards.append(card_instance)
 	
-	# 布局卡片到底部
-	arrange_cards_at_bottom()
+	# 扇形布局卡片到底部
+	arrange_cards_in_fan()
 
-# 将卡片排列在页面底部
-func arrange_cards_at_bottom() -> void:
+# 将卡片排列成扇形
+func arrange_cards_in_fan() -> void:
 	if cards.is_empty():
 		return
 	
 	var card_count = cards.size()
-	var card_width = 300.0  # Card.tscn中定义的宽度
-	var total_width = card_count * card_width + (card_count - 1) * card_spacing
 	
-	# 计算起始X位置（居中）
-	var start_x = (size.x - total_width) / 2.0
-	var y_position = size.y - 440.0 - bottom_margin  # 440是卡片高度
+	# 计算扇形中心点（屏幕底部中央）
+	var center_x = size.x / 2.0
+	var center_y = size.y + fan_radius - bottom_margin
 	
-	# 设置每张卡片的位置
+	# 计算每张卡片的角度间隔
+	var angle_step = 0.0
+	if card_count > 1:
+		angle_step = deg_to_rad(fan_angle) / (card_count - 1)
+	
+	# 起始角度（从左到右）
+	var start_angle = deg_to_rad(-fan_angle / 2.0)
+	
+	# 设置每张卡片的位置和旋转
 	for i in range(card_count):
 		var card = cards[i]
-		var x_position = start_x + i * (card_width + card_spacing)
-		card.position = Vector2(x_position, y_position)
+		
+		# 计算当前卡片的角度
+		var current_angle = start_angle + i * angle_step
+		
+		# 计算卡片位置（圆弧上的点）
+		var x = center_x + fan_radius * sin(current_angle)
+		var y = center_y - fan_radius * cos(current_angle) - card_lift
+		
+		# 设置卡片位置
+		card.position = Vector2(x - 150, y - 220)  # 150和220是卡片的一半尺寸
+		
+		# 设置卡片旋转角度（朝向扇形中心）
+		card.rotation = current_angle
+		
+		# 设置卡片层级（从左到右按顺序叠放，右边的卡片在上层）
+		card.z_index = i
 
 # 清除所有卡片
 func clear_cards() -> void:
@@ -56,4 +81,4 @@ func clear_cards() -> void:
 
 # 当窗口大小改变时重新布局
 func _on_resized() -> void:
-	arrange_cards_at_bottom()
+	arrange_cards_in_fan()

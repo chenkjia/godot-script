@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://daahyvmi548l3" path="res://components/CardManager.tscn" id="1_glv2v"]
 
-[node name="Control" type="Control"]
+[node name="Main" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,3 +12,9 @@ grow_vertical = 2
 
 [node name="CardManager" parent="." instance=ExtResource("1_glv2v")]
 layout_mode = 1
+
+[node name="CardTrash" type="Control" parent="."]
+modulate = Color(0.59402686, 0.2197401, 0.2704991, 1)
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 440.0
