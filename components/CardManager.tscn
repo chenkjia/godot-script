@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://daahyvmi548l3"]
+
+[ext_resource type="Script" uid="uid://b7t8qi5ks8ii6" path="res://components/card_manager.gd" id="1_xg0ni"]
+
+[node name="CardManager" type="Control"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_xg0ni")

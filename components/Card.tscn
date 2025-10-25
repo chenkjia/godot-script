@@ -1,14 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://ccdbwlql03nqu"]
+[gd_scene load_steps=3 format=3 uid="uid://ccdbwlql03nqu"]
 
-[ext_resource type="Script" uid="uid://c3yijigf5a4a2" path="res://card.gd" id="1_21rx5"]
-[ext_resource type="Shader" uid="uid://dl05rvntgxasm" path="res://assets/shader/blur.gdshader" id="2_3ujke"]
+[ext_resource type="Script" uid="uid://c3yijigf5a4a2" path="res://components/card.gd" id="1_21rx5"]
 [ext_resource type="Texture2D" uid="uid://e6bcc7omlliv" path="res://assets/card_bg.png" id="2_hael8"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_21rx5"]
-shader = ExtResource("2_3ujke")
-shader_parameter/sigma = 0.10000000149012
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_3ujke"]
 
 [node name="Card" type="Control"]
 layout_mode = 3
@@ -22,22 +15,11 @@ script = ExtResource("1_21rx5")
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(1, 1, 1, 0.49803922)
 layout_mode = 0
-offset_left = 8.0
-offset_top = 10.0
-offset_right = 308.0
-offset_bottom = 450.0
+offset_right = 300.0
+offset_bottom = 440.0
 texture = ExtResource("2_hael8")
 
-[node name="Blur" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_21rx5")
-layout_mode = 0
-offset_left = -75.0
-offset_top = -110.0
-offset_right = 375.0
-offset_bottom = 550.0
-
 [node name="CardTexture" type="TextureRect" parent="."]
-material = SubResource("ShaderMaterial_3ujke")
 layout_mode = 0
 offset_right = 300.0
 offset_bottom = 440.0
