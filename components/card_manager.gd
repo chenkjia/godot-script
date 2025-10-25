@@ -15,7 +15,7 @@ var cards: Array[Control] = []
 
 # 拖动散开效果参数
 var dragging_card: Control = null
-@export var spread_strength: float = 40.0  # 拿起时两侧卡片横向散开的强度（像素）
+@export var spread_strength: float = 100  # 拿起时两侧卡片横向散开的强度（像素）
 @export var spread_falloff: float = 0.35   # 距离选中卡片越远，散开越小（每隔一张乘以这个系数）
 
 func _ready() -> void:
@@ -35,7 +35,7 @@ func load_cards(count: int) -> void:
 		add_child(c)
 		cards.append(c)
 		# 连接卡片的交互信号
-		c.drag_started.connect(_on_card_drag_started)
+		c.card_start_play.connect(_on_card_start_play)
 		c.card_cancel_play.connect(_on_card_cancel_play)
 		c.card_destroyed.connect(_on_card_destroyed)
 	arrange_cards_in_fan()
@@ -117,7 +117,7 @@ func remove_card(card: Node) -> void:
 		# 重新布局剩余卡片
 		arrange_cards_in_fan()
 
-func _on_card_drag_started(card: Control) -> void:
+func _on_card_start_play(card: Control) -> void:
 	dragging_card = card
 	arrange_cards_in_fan()
 
