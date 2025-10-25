@@ -11,9 +11,12 @@ extends Control
 # 拖动相关变量
 var dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
+var original_position: Vector2 = Vector2.ZERO  # 记录原始位置
+var original_rotation: float = 0.0  # 记录原始旋转
 var tween_rot: Tween
 @export var follow_speed: float = 1.0
 @export var rotation_factor: float = 0.03
+@export var return_speed: float = 0.3  # 返回原位的速度
 
 var tween: Tween
 
@@ -52,6 +55,9 @@ func _gui_input(event: InputEvent) -> void:
 		var mb: InputEventMouseButton = event
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
+				# 记录拖动开始时的原始位置和旋转
+				original_position = global_position
+				original_rotation = rotation_degrees
 				# 直接开始拖动，因为事件已经在卡片范围内
 				dragging = true
 				drag_offset = global_position - get_global_mouse_position()
@@ -61,13 +67,15 @@ func _gui_input(event: InputEvent) -> void:
 				if dragging:
 					dragging = false
 					# 检查是否在垃圾桶区域内
-					check_trash_area()
-					# 停止旋转动画并归零（卡片和阴影同步）
-					if tween_rot: 
-						tween_rot.kill()
-					tween_rot = create_tween().set_parallel(true)
-					tween_rot.tween_property(self, "rotation_degrees", 0.0, 0.15)
-					tween_rot.tween_property(shadow, "rotation_degrees", 0.0, 0.15)
+					if not check_trash_area():
+						# 如果不在垃圾桶区域，返回原位置
+						return_to_original_position()
+					else:
+						# 如果在垃圾桶区域，停止旋转动画并归零
+						if tween_rot: 
+							tween_rot.kill()
+						tween_rot = create_tween().set_parallel(true)
+						tween_rot.tween_property(self, "rotation_degrees", 0.0, 0.15)
 	elif dragging and event is InputEventMouseMotion:
 		drag_card_motion(event as InputEventMouseMotion)
 
@@ -91,7 +99,7 @@ func drag_card_motion(motion_event: InputEventMouseMotion) -> void:
 	tween_rot.tween_property(card, "rotation_degrees", target_rotation, 0.08)
 
 # 检查卡片是否在垃圾桶区域内
-func check_trash_area() -> void:
+func check_trash_area() -> bool:
 	# 查找垃圾桶节点
 	var trash_nodes = get_tree().get_nodes_in_group("card_trash")
 	if trash_nodes.is_empty():
@@ -107,7 +115,9 @@ func check_trash_area() -> void:
 		if trash.has_method("is_card_in_trash_area") and trash.is_card_in_trash_area(self):
 			# 卡片在垃圾桶区域内，销毁卡片
 			trash.destroy_card(self)
-			return
+			return true
+	
+	return false  # 卡片不在垃圾桶区域内
 
 # 递归查找垃圾桶节点
 func find_trash_nodes(node: Node) -> Array:
@@ -122,3 +132,15 @@ func find_trash_nodes(node: Node) -> Array:
 		trash_nodes.append_array(find_trash_nodes(child))
 	
 	return trash_nodes
+
+# 返回到原始位置
+func return_to_original_position() -> void:
+	# 创建返回动画
+	var return_tween = create_tween().set_parallel(true)
+	
+	# 平滑移动到原始位置
+	return_tween.tween_property(self, "global_position", original_position, return_speed)
+	
+	# 平滑旋转到原始角度
+	return_tween.tween_property(self, "rotation_degrees", original_rotation, return_speed)
+	# return_tween.tween_property(shadow, "rotation_degrees", original_rotation, return_speed)

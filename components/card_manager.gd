@@ -19,8 +19,8 @@ func _ready() -> void:
 	
 	# 连接窗口大小改变信号
 	resized.connect(_on_resized)
-	# 加载九张卡片到页面底部
-	load_cards(9)
+	# 加载三张卡片到页面底部（测试少量卡片的集中效果）
+	load_cards(10)
 
 # 加载指定数量的卡片
 func load_cards(count: int) -> void:
@@ -47,13 +47,16 @@ func arrange_cards_in_fan() -> void:
 	var center_x = size.x / 2.0
 	var center_y = size.y + fan_radius - bottom_margin
 	
+	# 动态计算扇形角度的算法
+	var dynamic_fan_angle = calculate_dynamic_fan_angle(card_count)
+	
 	# 计算每张卡片的角度间隔
 	var angle_step = 0.0
 	if card_count > 1:
-		angle_step = deg_to_rad(fan_angle) / (card_count - 1)
+		angle_step = deg_to_rad(dynamic_fan_angle) / (card_count - 1)
 	
 	# 起始角度（从左到右）
-	var start_angle = deg_to_rad(-fan_angle / 2.0)
+	var start_angle = deg_to_rad(-dynamic_fan_angle / 2.0)
 	
 	# 设置每张卡片的位置和旋转
 	for i in range(card_count):
@@ -74,6 +77,28 @@ func arrange_cards_in_fan() -> void:
 		
 		# 设置卡片层级（从左到右按顺序叠放，右边的卡片在上层）
 		card.z_index = i
+
+# 动态计算扇形角度的算法
+func calculate_dynamic_fan_angle(card_count: int) -> float:
+	# 基础参数
+	var min_angle = 0.0  # 单张卡片时的角度
+	var max_angle = fan_angle  # 最大扇形角度
+	var optimal_card_count = 8.0  # 达到最大角度的理想卡片数量
+	
+	# 使用平滑曲线算法：基于反比例函数的变体
+	# 公式：angle = max_angle * (1 - e^(-k * count))
+	# 其中 k 是控制曲线陡峭程度的参数
+	var k = 2.0 / optimal_card_count  # 调节参数，控制增长速度
+	var normalized_angle = 1.0 - exp(-k * card_count)
+	
+	# 应用最小角度限制和平滑过渡
+	var calculated_angle = max_angle * normalized_angle
+	
+	# 对于极少数卡片，应用额外的压缩
+	if card_count <= 2:
+		calculated_angle *= 0.3  # 1-2张卡片时进一步压缩
+	
+	return max(min_angle, calculated_angle)
 
 # 清除所有卡片
 func clear_cards() -> void:
