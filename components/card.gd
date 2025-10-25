@@ -66,19 +66,22 @@ func _gui_input(event: InputEvent) -> void:
 				drag_offset = global_position - get_global_mouse_position()
 				# 将卡片移到最前面
 				get_parent().move_child(self, -1)
+				# 通知管理器：开始散开效果
+				notify_begin_drag_spread()
 			else:
-				if dragging:
-					dragging = false
-					# 检查是否在垃圾桶区域内
-					if not check_trash_area():
-						# 如果不在垃圾桶区域，返回原位置
-						return_to_original_position()
-					else:
-						# 如果在垃圾桶区域，停止旋转动画并归零
-						if tween_rot: 
-							tween_rot.kill()
-						tween_rot = create_tween().set_parallel(true)
-						tween_rot.tween_property(self, "rotation_degrees", 0.0, 0.15)
+					if dragging:
+						dragging = false
+						# 检查是否在垃圾桶区域内
+						if not check_trash_area():
+							# 如果不在垃圾桶区域，返回原位置（在返回动画完成后再恢复布局）
+							return_to_original_position()
+						else:
+							# 如果在垃圾桶区域，停止旋转动画并归零，并立即恢复布局
+							if tween_rot: 
+								tween_rot.kill()
+								tween_rot = create_tween().set_parallel(true)
+								tween_rot.tween_property(self, "rotation_degrees", 0.0, 0.15)
+								notify_end_drag_spread()
 	elif dragging and event is InputEventMouseMotion:
 		drag_card_motion(event as InputEventMouseMotion)
 
@@ -146,3 +149,23 @@ func return_to_original_position() -> void:
 	return_tween.tween_property(self, "rotation_degrees", original_rotation, return_speed)
 	# 恢复原始层级索引
 	get_parent().move_child(self, original_index)
+	# 返回动画完成后再恢复整体布局
+	return_tween.finished.connect(func():
+		notify_end_drag_spread()
+	)
+
+# 通知管理器：开始散开效果
+func notify_begin_drag_spread() -> void:
+	var managers = get_tree().get_nodes_in_group("card_manager")
+	if managers.size() > 0:
+		var m = managers[0]
+		if m.has_method("begin_drag_spread"):
+			m.begin_drag_spread(self)
+
+# 通知管理器：结束散开效果
+func notify_end_drag_spread() -> void:
+	var managers = get_tree().get_nodes_in_group("card_manager")
+	if managers.size() > 0:
+		var m = managers[0]
+		if m.has_method("end_drag_spread"):
+			m.end_drag_spread()

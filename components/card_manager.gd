@@ -13,6 +13,11 @@ var cards: Array[Control] = []
 @export var fan_radius: float = 800.0  # 扇形半径
 @export var card_lift: float = 30.0  # 卡片向上抬起的距离
 
+# 拖动散开效果参数
+var dragging_card: Control = null
+@export var spread_strength: float = 40.0  # 拿起时两侧卡片横向散开的强度（像素）
+@export var spread_falloff: float = 0.35   # 距离选中卡片越远，散开越小（每隔一张乘以这个系数）
+
 func _ready() -> void:
 	# 将卡片管理器添加到组中，方便垃圾桶找到
 	add_to_group("card_manager")
@@ -38,44 +43,29 @@ func load_cards(count: int) -> void:
 
 # 将卡片排列成扇形
 func arrange_cards_in_fan() -> void:
-	if cards.is_empty():
+	var n := cards.size()
+	if n == 0:
 		return
-	
-	var card_count = cards.size()
-	
-	# 计算扇形中心点（屏幕底部中央）
-	var center_x = size.x / 2.0
-	var center_y = size.y + fan_radius - bottom_margin
-	
-	# 动态计算扇形角度的算法
-	var dynamic_fan_angle = calculate_dynamic_fan_angle(card_count)
-	
-	# 计算每张卡片的角度间隔
-	var angle_step = 0.0
-	if card_count > 1:
-		angle_step = deg_to_rad(dynamic_fan_angle) / (card_count - 1)
-	
-	# 起始角度（从左到右）
-	var start_angle = deg_to_rad(-dynamic_fan_angle / 2.0)
-	
-	# 设置每张卡片的位置和旋转
-	for i in range(card_count):
-		var card = cards[i]
-		
-		# 计算当前卡片的角度
-		var current_angle = start_angle + i * angle_step
-		
-		# 计算卡片位置（圆弧上的点）
-		var x = center_x + fan_radius * sin(current_angle)
-		var y = center_y - fan_radius * cos(current_angle) - card_lift
-		
-		# 设置卡片位置
-		card.position = Vector2(x - 150, y - 220)  # 150和220是卡片的一半尺寸
-		
-		# 设置卡片旋转角度（朝向扇形中心）
-		card.rotation = current_angle
-		
-		# 设置卡片层级（从左到右按顺序叠放，右边的卡片在上层）
+	var center := Vector2(size.x * 0.5, size.y + fan_radius - bottom_margin)
+	var total := calculate_dynamic_fan_angle(n)
+	var start := -deg_to_rad(total) * 0.5
+	var step := deg_to_rad(total) / (n - 1) if n > 1 else 0.0
+	var di := cards.find(dragging_card) if dragging_card and dragging_card in cards else -1
+	for i in range(n):
+		var a := start + i * step
+		var card := cards[i]
+		if di == i:
+			card.z_index = i
+			continue
+		var pos := Vector2(
+			center.x + fan_radius * sin(a) - 150,
+			center.y - fan_radius * cos(a) - card_lift - 220
+		)
+		if di != -1:
+			pos.x += (-1 if i < di else 1) * spread_strength * pow(1.0 - spread_falloff, abs(i - di) - 1)
+		var tw := create_tween().set_parallel(true)
+		tw.tween_property(card, "position", pos, 0.12)
+		tw.tween_property(card, "rotation", a, 0.12)
 		card.z_index = i
 
 # 动态计算扇形角度的算法
@@ -99,6 +89,16 @@ func calculate_dynamic_fan_angle(card_count: int) -> float:
 		calculated_angle *= 0.3  # 1-2张卡片时进一步压缩
 	
 	return max(min_angle, calculated_angle)
+
+# 开始拖动时，让其他卡片轻微散开
+func begin_drag_spread(card: Control) -> void:
+	dragging_card = card
+	arrange_cards_in_fan()
+
+# 结束拖动或卡片销毁后，恢复布局
+func end_drag_spread() -> void:
+	dragging_card = null
+	arrange_cards_in_fan()
 
 # 清除所有卡片
 func clear_cards() -> void:
