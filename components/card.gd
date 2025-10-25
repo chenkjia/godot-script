@@ -13,6 +13,7 @@ var dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var original_position: Vector2 = Vector2.ZERO  # 记录原始位置
 var original_rotation: float = 0.0  # 记录原始旋转
+var original_index: int = 0  # 记录原始层级索引
 var tween_rot: Tween
 @export var follow_speed: float = 1.0
 @export var rotation_factor: float = 0.03
@@ -58,6 +59,8 @@ func _gui_input(event: InputEvent) -> void:
 				# 记录拖动开始时的原始位置和旋转
 				original_position = global_position
 				original_rotation = rotation_degrees
+				# 记录原始层级索引
+				original_index = get_index()
 				# 直接开始拖动，因为事件已经在卡片范围内
 				dragging = true
 				drag_offset = global_position - get_global_mouse_position()
@@ -137,10 +140,9 @@ func find_trash_nodes(node: Node) -> Array:
 func return_to_original_position() -> void:
 	# 创建返回动画
 	var return_tween = create_tween().set_parallel(true)
-	
 	# 平滑移动到原始位置
 	return_tween.tween_property(self, "global_position", original_position, return_speed)
-	
 	# 平滑旋转到原始角度
 	return_tween.tween_property(self, "rotation_degrees", original_rotation, return_speed)
-	# return_tween.tween_property(shadow, "rotation_degrees", original_rotation, return_speed)
+	# 恢复原始层级索引
+	get_parent().move_child(self, original_index)
