@@ -29,16 +29,15 @@ func _ready() -> void:
 
 # 加载指定数量的卡片
 func load_cards(count: int) -> void:
-	# 清除现有卡片
 	clear_cards()
-	
-	# 创建新卡片
 	for i in range(count):
-		var card_instance = card_scene.instantiate()
-		add_child(card_instance)
-		cards.append(card_instance)
-	
-	# 扇形布局卡片到底部
+		var c := card_scene.instantiate()
+		add_child(c)
+		cards.append(c)
+		# 连接卡片的交互信号
+		c.drag_started.connect(_on_card_drag_started)
+		c.card_cancel_play.connect(_on_card_cancel_play)
+		c.card_destroyed.connect(_on_card_destroyed)
 	arrange_cards_in_fan()
 
 # 将卡片排列成扇形
@@ -117,3 +116,17 @@ func remove_card(card: Node) -> void:
 		cards.erase(card)
 		# 重新布局剩余卡片
 		arrange_cards_in_fan()
+
+func _on_card_drag_started(card: Control) -> void:
+	dragging_card = card
+	arrange_cards_in_fan()
+
+func _on_card_cancel_play(card: Control) -> void:
+	if dragging_card == card:
+		dragging_card = null
+	arrange_cards_in_fan()
+
+func _on_card_destroyed(card: Control) -> void:
+	if dragging_card == card:
+		dragging_card = null
+	arrange_cards_in_fan()

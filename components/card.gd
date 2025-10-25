@@ -4,6 +4,11 @@ extends Control
 @onready var card_texture: TextureRect = $CardTexture
 @onready var shadow: TextureRect = $Shadow
 
+# 事件信号（由管理器接入并处理）
+signal drag_started(card)
+signal card_cancel_play(card)
+signal card_destroyed(card)
+
 @export var pick_up_card_scale: Vector2 = Vector2(1.12, 1.12)
 @export var pick_up_shadow_scale: Vector2 = Vector2(1.08, 1.08)
 @export var pick_up_speed: float = 0.12
@@ -31,9 +36,11 @@ func _ready() -> void:
 
 func _on_mouse_entered() -> void:
 	pick_up_card()
+	emit_signal("drag_started", self)
 
 func _on_mouse_exited() -> void:
 	put_down_card()
+	emit_signal("card_cancel_play", self)
 
 # 独立函数：拿起卡片
 func pick_up_card() -> void:
@@ -66,8 +73,8 @@ func _gui_input(event: InputEvent) -> void:
 				drag_offset = global_position - get_global_mouse_position()
 				# 将卡片移到最前面
 				get_parent().move_child(self, -1)
-				# 通知管理器：开始散开效果
-				notify_begin_drag_spread()
+				# 发送拖动开始信号
+				emit_signal("drag_started", self)
 			else:
 					if dragging:
 						dragging = false
@@ -76,12 +83,12 @@ func _gui_input(event: InputEvent) -> void:
 							# 如果不在垃圾桶区域，返回原位置（在返回动画完成后再恢复布局）
 							return_to_original_position()
 						else:
-							# 如果在垃圾桶区域，停止旋转动画并归零，并立即恢复布局
+							# 如果在垃圾桶区域，停止旋转动画并归零，并发出销毁信号
 							if tween_rot: 
 								tween_rot.kill()
 								tween_rot = create_tween().set_parallel(true)
 								tween_rot.tween_property(self, "rotation_degrees", 0.0, 0.15)
-								notify_end_drag_spread()
+								emit_signal("card_destroyed", self)
 	elif dragging and event is InputEventMouseMotion:
 		drag_card_motion(event as InputEventMouseMotion)
 
@@ -141,31 +148,10 @@ func find_trash_nodes(node: Node) -> Array:
 
 # 返回到原始位置
 func return_to_original_position() -> void:
-	# 创建返回动画
 	var return_tween = create_tween().set_parallel(true)
-	# 平滑移动到原始位置
 	return_tween.tween_property(self, "global_position", original_position, return_speed)
-	# 平滑旋转到原始角度
 	return_tween.tween_property(self, "rotation_degrees", original_rotation, return_speed)
-	# 恢复原始层级索引
 	get_parent().move_child(self, original_index)
-	# 返回动画完成后再恢复整体布局
 	return_tween.finished.connect(func():
-		notify_end_drag_spread()
+		emit_signal("card_cancel_play", self)
 	)
-
-# 通知管理器：开始散开效果
-func notify_begin_drag_spread() -> void:
-	var managers = get_tree().get_nodes_in_group("card_manager")
-	if managers.size() > 0:
-		var m = managers[0]
-		if m.has_method("begin_drag_spread"):
-			m.begin_drag_spread(self)
-
-# 通知管理器：结束散开效果
-func notify_end_drag_spread() -> void:
-	var managers = get_tree().get_nodes_in_group("card_manager")
-	if managers.size() > 0:
-		var m = managers[0]
-		if m.has_method("end_drag_spread"):
-			m.end_drag_spread()
