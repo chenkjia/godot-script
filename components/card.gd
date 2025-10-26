@@ -34,9 +34,6 @@ func _ready() -> void:
 	card.pivot_offset = card.size * 0.5
 	# 记录原始Y偏移
 	original_y_offset = position.y
-	# 连接鼠标进入/退出事件
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
 
 func _on_mouse_entered() -> void:
 	pick_up_card()
